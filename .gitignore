@@ -1,0 +1,19 @@
+# IntelliJ
+.idea/
+# Python
+.venv/
+build/
+*.egg-info/
+*.pyc
+# Secrets
+*.env*
+!.env.sample
+*id_rsa*
+# Terraform
+.terraform/
+*.tfstate*
+# Configuration
+*config*.yaml
+# Tempoary files
+tmp*
+temp*
