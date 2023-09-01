@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"os"
-	"time"
 
 	auth2 "go.containerssh.io/libcontainerssh/auth"
 	"go.containerssh.io/libcontainerssh/auth/webhook"
@@ -51,7 +49,7 @@ func (m *authReqHandler) OnAuthorization(
 	return true, meta, nil
 }
 
-func getenv(key, _default string) string {
+func getenv(key string, _default string) string {
 	value := os.Getenv(key)
 	if len(value) == 0 {
 		return _default
@@ -59,8 +57,16 @@ func getenv(key, _default string) string {
 	return value
 }
 
+// Extract the authorized keys from a file to use with the auth handler
+func authorizedKeys(filepath string) []string {
+
+}
+
 func main() {
-	// Set up a logger.
+
+	authorized_keys := authorizedKeys(getenv(""))
+
+	// Set up a logger. Which panics if it cannot be created
 	logger := log.MustNewLogger(config.LogConfig{
 		Level:       config.LogLevelDebug,
 		Format:      config.LogFormatText,
@@ -68,36 +74,23 @@ func main() {
 		Stdout:      os.Stdout,
 	})
 
-	// Create a new auth webhook server.
+	// Create a new auth webhook server
 	srv, err := webhook.NewServer(
 		config.HTTPServerConfiguration{
 			Listen: getenv("BIND_URL", "127.0.0.1:8001"),
 		},
-		// Pass your handler here.
 		&authReqHandler{},
 		logger,
 	)
 	if err != nil {
-		// Handle error
 		panic(err)
 	}
 
-	// Set up and run the web server service.
+	// Set up and run the web server service
 	lifecycle := service.NewLifecycle(srv)
+	_ = lifecycle.Run()
 
-	go func() {
-		//Ignore error, handled later.
-		_ = lifecycle.Run()
-	}()
-
-	// Sleep for 30 seconds as a test.
-	time.Sleep(30 * time.Second)
-
-	// Set up a shutdown context to give a deadline for graceful shutdown.
-	shutdownContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	// Stop the server.
-	lifecycle.Stop(shutdownContext)
+	// TODO: graceful shutdown
 
 	lastError := lifecycle.Wait()
 	if lastError != nil {

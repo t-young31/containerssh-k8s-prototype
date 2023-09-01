@@ -1,4 +1,4 @@
-module github.com/t-young31/containerssh-k8s-prototype/server
+module github.com/t-young31/containerssh-k8s-prototype/auth_server
 
 go 1.20
 

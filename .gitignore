@@ -5,6 +5,8 @@
 build/
 *.egg-info/
 *.pyc
+*_cache/
+__pycache__/
 # Secrets
 *.env*
 !.env.sample

@@ -41,6 +41,3 @@ ssh: rsync
 
 rsync:
 	. init.sh && ./rsync.sh
-
-server-build:
-	docker build -t ck8sserver server
