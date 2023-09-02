@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	auth2 "go.containerssh.io/libcontainerssh/auth"
 	"go.containerssh.io/libcontainerssh/auth/webhook"
@@ -11,7 +13,14 @@ import (
 	"go.containerssh.io/libcontainerssh/service"
 )
 
+func assertNotNil(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
 type authReqHandler struct {
+	authorized_keys []string
 }
 
 // OnPassword will be called when the user requests password authentication.
@@ -23,7 +32,7 @@ func (m *authReqHandler) OnPassword(
 	metadata metadata.ConnectionAuthenticatedMetadata,
 	err error,
 ) {
-	return true, meta.Authenticated(meta.Username), nil
+	return false, meta.Authenticated(meta.Username), nil
 }
 
 // OnPubKey will be called when the user requests public key authentication.
@@ -35,7 +44,15 @@ func (m *authReqHandler) OnPubKey(
 	metadata metadata.ConnectionAuthenticatedMetadata,
 	err error,
 ) {
-	return true, meta.Authenticated(meta.Username), nil
+	success = false
+	for _, key := range m.authorized_keys {
+		if key == publicKey.PublicKey {
+			success = true
+			break
+		}
+	}
+
+	return success, meta.Authenticated(meta.Username), nil
 }
 
 // OnAuthorization will be called after login in non-webhook auth handlers to verify the user is authorized to login
@@ -46,10 +63,10 @@ func (m *authReqHandler) OnAuthorization(
 	metadata metadata.ConnectionAuthenticatedMetadata,
 	err error,
 ) {
-	return true, meta, nil
+	return false, meta, nil
 }
 
-func getenv(key string, _default string) string {
+func env_or_default(key string, _default string) string {
 	value := os.Getenv(key)
 	if len(value) == 0 {
 		return _default
@@ -57,16 +74,36 @@ func getenv(key string, _default string) string {
 	return value
 }
 
+func env(key string) string {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		panic(fmt.Sprintf("Environment variable [%v] not set", key))
+	}
+	return value
+}
+
 // Extract the authorized keys from a file to use with the auth handler
 func authorizedKeys(filepath string) []string {
 
+	var keys []string
+
+	file_bytes, err := os.ReadFile(filepath)
+	assertNotNil(err)
+
+	lines := strings.Split(string(file_bytes), "\n")
+	for _, line := range lines {
+		if len(strings.Fields(line)) == 0 {
+			continue
+		}
+		keys = append(keys, line)
+	}
+
+	return keys
 }
 
 func main() {
 
-	authorized_keys := authorizedKeys(getenv(""))
-
-	// Set up a logger. Which panics if it cannot be created
+	// Set up a logger which panics if it cannot be created
 	logger := log.MustNewLogger(config.LogConfig{
 		Level:       config.LogLevelDebug,
 		Format:      config.LogFormatText,
@@ -77,9 +114,11 @@ func main() {
 	// Create a new auth webhook server
 	srv, err := webhook.NewServer(
 		config.HTTPServerConfiguration{
-			Listen: getenv("BIND_URL", "127.0.0.1:8001"),
+			Listen: env_or_default("BIND_URL", "127.0.0.1:8001"),
 		},
-		&authReqHandler{},
+		&authReqHandler{
+			authorizedKeys(env("AUTHORIZED_KEYS_FILEPATH")),
+		},
 		logger,
 	)
 	if err != nil {

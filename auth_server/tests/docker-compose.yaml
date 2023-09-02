@@ -9,3 +9,8 @@ services:
     image: ck8sserver
     environment:
       BIND_URL: "0.0.0.0:8080"
+      AUTHORIZED_KEYS_FILEPATH: "/authorized_keys"
+    volumes:
+      - type: bind
+        source: ./authorized_keys
+        target: /authorized_keys
