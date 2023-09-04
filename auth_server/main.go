@@ -76,7 +76,7 @@ func (m *authReqHandler) OnAuthorization(
 	return false, meta, nil
 }
 
-func env_or_default(key string, _default string) string {
+func envOrDefault(key string, _default string) string {
 	value := os.Getenv(key)
 	if len(value) == 0 {
 		return _default
@@ -123,7 +123,7 @@ func main() {
 
 	srv, err := webhook.NewServer(
 		config.HTTPServerConfiguration{
-			Listen: env_or_default("BIND_URL", "127.0.0.1:8001"),
+			Listen: envOrDefault("BIND_URL", "127.0.0.1:8001"),
 		},
 		&authReqHandler{
 			authorizedKeys(env("AUTHORIZED_KEYS_FILEPATH")),

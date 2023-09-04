@@ -1,3 +1,7 @@
+output "ec2_ip" {
+  value = aws_instance.server.public_ip
+}
+
 output "ssh_command" {
   value = local.ssh_command
 }
