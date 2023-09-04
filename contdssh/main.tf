@@ -104,7 +104,8 @@ resource "kubernetes_config_map" "containerssh" {
 resource "kubernetes_manifest" "deployment" {
   manifest = yamldecode(templatefile("${path.module}/deployment.template.yaml",
     {
-      secret_name = kubernetes_secret.hostkey.metadata[0].name
+      secret_name       = kubernetes_secret.hostkey.metadata[0].name
+      auth_server_image = var.auth_server_image
     }
   ))
 }
@@ -127,5 +128,16 @@ resource "kubernetes_service" "containerssh" {
       port        = 2222
       target_port = 2222
     }
+  }
+}
+
+resource "kubernetes_config_map" "authorizedkeys" {
+  metadata {
+    name      = "authorized-keys"
+    namespace = kubernetes_namespace.containerssh.metadata[0].name
+  }
+
+  data = {
+    "authorized_keys.txt" = file("authorized_keys")
   }
 }

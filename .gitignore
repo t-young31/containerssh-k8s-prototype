@@ -10,12 +10,13 @@ __pycache__/
 # Secrets
 *.env*
 !.env.sample
-*id_rsa*
+*id_*
 # Terraform
 .terraform/
 *.tfstate*
 # Configuration
 *config*.yaml
+!config.template.yaml
 # Tempoary files
 tmp*
 temp*

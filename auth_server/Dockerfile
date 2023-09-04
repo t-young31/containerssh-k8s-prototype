@@ -1,4 +1,4 @@
-FROM golang:1.20.7-bookworm
+FROM golang:1.20.7-alpine
 
 WORKDIR /app
 RUN unset GOPATH

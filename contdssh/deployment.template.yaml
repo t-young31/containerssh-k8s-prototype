@@ -16,13 +16,14 @@ spec:
         app: containerssh
     spec:
       automountServiceAccountToken: true
-      securityContext:
-        runAsNonRoot: true
-        # readOnlyRootFilesystem: true
+      # securityContext:
+      #   runAsNonRoot: true
+      #   readOnlyRootFilesystem: true
       containers:
-      - image: containerssh/containerssh:0.4.1
+      - name: containerssh
+        #image: containerssh/containerssh:0.4.1
+        image: containerssh/containerssh:0.5.0-alpha.1
         imagePullPolicy: IfNotPresent
-        name: containerssh
         ports:
         - containerPort: 2222
           protocol: TCP
@@ -36,9 +37,16 @@ spec:
           readOnly: true
           subPath: config.yaml
 
-      # TODO: custom auth
       - name: containerssh-authconfig
-        image: containerssh/containerssh-test-authconfig:0.4
+        image: ${auth_server_image}
+        env:
+          - name: AUTHORIZED_KEYS_FILEPATH
+            value: /etc/containerssh/authorized_keys.txt
+        volumeMounts:
+        - mountPath: /etc/containerssh/authorized_keys.txt
+          name: keys
+          readOnly: true
+          subPath: authorized_keys.txt
 
       restartPolicy: Always
       serviceAccount: containerssh
@@ -50,3 +58,6 @@ spec:
       - configMap:
           name: containerssh-config
         name: config
+      - configMap:
+          name: authorized-keys
+        name: keys

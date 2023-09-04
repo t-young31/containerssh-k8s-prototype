@@ -1,0 +1,22 @@
+ssh:
+  hostkeys:
+    - /etc/containerssh/host.key
+auth:
+  url: http://127.0.0.1:8080
+  password: false
+  pubkey: true
+log:
+  level: debug
+backend: kubernetes
+kubernetes:
+  connection:
+    host: kubernetes.default.svc
+    cacertFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+  pod:
+    metadata:
+      namespace: ${guest_namespace}
+    spec:
+      containers:
+        - name: shell
+          image: containerssh/containerssh-guest-image

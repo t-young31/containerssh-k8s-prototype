@@ -1,5 +1,5 @@
 resource "tls_private_key" "global_key" {
-  algorithm = "RSA"
+  algorithm = "ED25519"
   rsa_bits  = 2048
 }
 

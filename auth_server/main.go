@@ -21,6 +21,7 @@ func assertNotNil(e error) {
 
 type authReqHandler struct {
 	authorized_keys []string
+	logger          log.Logger
 }
 
 // OnPassword will be called when the user requests password authentication.
@@ -44,14 +45,23 @@ func (m *authReqHandler) OnPubKey(
 	metadata metadata.ConnectionAuthenticatedMetadata,
 	err error,
 ) {
+	m.logger.Debug(fmt.Sprintf("Received meta: [%v] \nkey: [%v]", meta, publicKey.PublicKey))
+
+	key_parts := strings.Fields(publicKey.PublicKey)
+
 	success = false
-	for _, key := range m.authorized_keys {
-		if key == publicKey.PublicKey {
+	for _, authd_key := range m.authorized_keys {
+		authd_key_parts := strings.Fields(authd_key)
+		// m.logger.Debug(fmt.Sprintf("Checking [%v]", authd_key))
+
+		// A key an an authorized key file may have a username suffix
+		if len(key_parts) > 1 && len(authd_key_parts) > 1 && key_parts[1] == key_parts[1] {
 			success = true
 			break
 		}
 	}
 
+	m.logger.Debug(fmt.Sprintf("Success [%v]", success))
 	return success, meta.Authenticated(meta.Username), nil
 }
 
@@ -111,13 +121,13 @@ func main() {
 		Stdout:      os.Stdout,
 	})
 
-	// Create a new auth webhook server
 	srv, err := webhook.NewServer(
 		config.HTTPServerConfiguration{
 			Listen: env_or_default("BIND_URL", "127.0.0.1:8001"),
 		},
 		&authReqHandler{
 			authorizedKeys(env("AUTHORIZED_KEYS_FILEPATH")),
+			logger,
 		},
 		logger,
 	)

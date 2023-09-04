@@ -11,6 +11,9 @@ if [ ! -f "$env_filepath" ]; then
     exit 1
 fi
 
-echo "Exporting variables in ${env_filepath} file into environment"
+echo "Exporting variables in ${env_filepath} file into the environment"
 read -ra args < <(grep -v '^#' "$env_filepath" | xargs)
 export "${args[@]}"
+
+export AUTH_SERVER_IMAGE="$CONTAINER_REGISTRY/auth_server"
+export TF_VAR_auth_server_image="$AUTH_SERVER_IMAGE"
