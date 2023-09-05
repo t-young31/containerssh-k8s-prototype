@@ -96,6 +96,7 @@ resource "kubernetes_config_map" "containerssh" {
   data = {
     "config.yaml" = templatefile("${path.module}/config.template.yaml",
       {
+        guest_image     = var.guest_image
         guest_namespace = kubernetes_namespace.containerssh_guests.metadata[0].name
     })
   }

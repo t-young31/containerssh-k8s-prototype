@@ -15,5 +15,7 @@ echo "Exporting variables in ${env_filepath} file into the environment"
 read -ra args < <(grep -v '^#' "$env_filepath" | xargs)
 export "${args[@]}"
 
-export AUTH_SERVER_IMAGE="$CONTAINER_REGISTRY/auth_server"
-export TF_VAR_auth_server_image="$AUTH_SERVER_IMAGE"
+export AUTH_SERVER_IMAGE="$CONTAINER_REGISTRY/auth_server" \
+       GUEST_IMAGE="$CONTAINER_REGISTRY/guest_image"
+export TF_VAR_auth_server_image="$AUTH_SERVER_IMAGE" \
+       TF_VAR_guest_image="$GUEST_IMAGE"

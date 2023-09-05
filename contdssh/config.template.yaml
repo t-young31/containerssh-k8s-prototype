@@ -19,4 +19,4 @@ kubernetes:
     spec:
       containers:
         - name: shell
-          image: containerssh/containerssh-guest-image
+          image: ${guest_image}
